@@ -3,7 +3,10 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "/home/antonin/Bureau/IBM_cplex/cplex/include",
+                "/home/antonin/Bureau/IBM_cplex/cplex/include",
+                "/home/antonin/Bureau/IBM_cplex/cplex/include"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

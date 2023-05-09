@@ -35,7 +35,7 @@ CPLEXFLAGS = -L$(CPLEXLIBDIR) -lilocplex -lcplex -L$(CONCERTLIBDIR) -lconcert -l
 
 
 # makefile
-OBJ = main.o data.o structure.o graph.o solver.o
+OBJ = main.o data.o structure.o graph.o solver.o perturbation.o
 ./main.o: ./main.cpp
 	$(CC) -c $< -o $@ $(CPLEXINC) $(SW)
 solver.o: solver.cpp
@@ -46,6 +46,8 @@ structure.o: structure.cpp
 	$(CC) -c $< -o $@ $(SW)
 graph.o: graph.cpp
 	$(CC) -c $< -o $@ $(SW)
+perturbation.o: perturbation.cpp
+	$(CC) -c $< -o $@ $(CPLEXINC) $(SW)
 
 $(NAME): $(OBJ)
 	$(CC) -o $(NAME) $(OBJ) $(CPLEXFLAGS) $(SW)	

@@ -16,6 +16,7 @@ class Data{
         unsigned int nnodes;
         unsigned int nedges;
         unsigned int p;
+        unsigned int perturbation;
 
         std::vector<edge> edges;
         std::vector<double> distances;

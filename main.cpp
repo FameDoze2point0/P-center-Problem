@@ -5,14 +5,14 @@
 
 int main(int argc, char const *argv[]){
 
-    if ( argc < 4){
-        std::cout << "Usage : " << argv[0] << " <instance_path> <maximal_distance> <type of instance>" << std::endl;
+    if ( argc < 5){
+        std::cout << "Usage : " << argv[0] << " <instance_path> <maximal_distance> <type of instance> <id perturbation (1,2,3)>" << std::endl;
         return 1;
     }   
 
     std::string instance = argv[1];
     Data pcenter;
-
+    pcenter.perturbation = std::atoi(argv[4]);
     switch (*argv[3]){
     case 'p':
         pcenter.read_data_pmed(instance);
@@ -38,6 +38,12 @@ int main(int argc, char const *argv[]){
         std::cout << "insert a valid instance type\n\t- p for pmed\n\t- t for tsp\n\t- l for Lorena\n\t- g for Galvao\n\t- b for Beasley" << std::endl;
         return 1;
     }
+
+    if (pcenter.perturbation > 3 || pcenter.perturbation < 1){
+        std::cout << "Insert a valid perturbation number (1/2/3)" << std::endl;
+        return 1;
+    }
+    
 
     Graph induced_graph;
     pcenter.create_induced_graph(induced_graph, 1e30);
