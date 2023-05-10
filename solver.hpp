@@ -3,6 +3,8 @@
 
 #include "data.hpp"
 #include "perturbation.hpp"
+#include "search.hpp"
+#include <chrono>
 
 #include "ilcplex/ilocplex.h"
 

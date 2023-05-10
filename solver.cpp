@@ -272,14 +272,15 @@ void Solver::freeMemory(){
 void Solver::solve(){
 
     double timeSpend = 0, t_initial = cplex.getCplexTime();
-    clock_t begin, end;
+    // clock_t begin, end;
+    auto start = std::chrono::high_resolution_clock::now();
 
     cout << "Perturbation Type : " << data->perturbation << endl;
     set_parameters();
     create_model();
     cplex.extract(model);
     
-    begin = clock();
+    // begin = clock();
     cplex.solve();
 
     if (cplex.getStatus() == IloAlgorithm::Infeasible){
@@ -333,16 +334,20 @@ void Solver::solve(){
         }else {
             isFound = true;
         }
-        end = clock();
+        
+        // end = clock();
+        auto stop = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
 
         if (isFound){
             cout << "Solution found in " << round << " rounds\n";
             cout << "Nombre de perturbations : " << perturbation << "\n";
-            cout << "Time : " << (double)(end-begin)/(double)CLOCKS_PER_SEC/NUMBER_OF_THREADS << "\n";
+            // cout << "Time : " << (double)(end-begin)/(double)CLOCKS_PER_SEC/NUMBER_OF_THREADS << "\n";
+            cout << "Time : " <<  (double)duration.count()/1000.0 << " seconds\n";
             cout << "Objective value : " << cplex.getValue(w) << "\n\n\n" << endl;
         }else{
             cout << "\n\nSolution not found : " << round << " rounds\n";
-            cout << "Time : " << (double)(end-begin)/(double)CLOCKS_PER_SEC/NUMBER_OF_THREADS << "\n";
+            // cout << "Time : " << (double)(end-begin)/(double)CLOCKS_PER_SEC/NUMBER_OF_THREADS << "\n";
             cout << "Nombre de perturbations : " << perturbation << "\n\n\n" << endl;
         }
     }
