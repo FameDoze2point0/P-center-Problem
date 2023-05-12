@@ -1,9 +1,10 @@
 #include "solver.hpp"
 
 #define TIME_LIMIT_IN_SECS 7200
-#define NUMBER_OF_THREADS 12
+#define NUMBER_OF_THREADS 1
 #define NUMBER_MAX_ITERATIONS 15000
 #define EPSILON 1e-5
+#define NB_SEARCH 10000
 
 
 ILOSTLBEGIN
@@ -12,7 +13,7 @@ using namespace std;
 
 void Solver::set_parameters(){
     cplex.setParam(IloCplex::Param::ClockType, 1);
-    cplex.setParam(IloCplex::Param::Threads, 12);
+    cplex.setParam(IloCplex::Param::Threads, NUMBER_OF_THREADS);
     //cplex.setParam(IloCplex::Param::Emphasis::MIP,5);
     //cplex.setParam(IloCplex::Param::MIP::Strategy::Dive,2);
     /* cplex.setParam(IloCplex::Param::MIP::Strategy::HeuristicEffort,1.5);
@@ -350,7 +351,20 @@ void Solver::solve(){
             // cout << "Time : " << (double)(end-begin)/(double)CLOCKS_PER_SEC/NUMBER_OF_THREADS << "\n";
             cout << "Nombre de perturbations : " << perturbation << "\n\n\n" << endl;
         }
+
+        if (isFound) {
+            double dist;
+            cout << "===== Début de la recherche locale =====" << endl;
+
+            for (size_t i = 0; i < NB_SEARCH ; i++){
+                dist = local_search(actual_solution,data);
+                // cout << i < endl;
+            }
+            // dist = local_search(actual_solution,data);
+            cout << "Maximum distance between a nodes and his center : " << dist << endl;
+        }
+        
     }
     
-    freeMemory();
+    //freeMemory();
 }

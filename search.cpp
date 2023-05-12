@@ -47,17 +47,23 @@ int chooseID(std::vector<std::pair<int,double>> Q){
 }
 
 // tri sélection
-void selectionSort(std::vector<std::pair<int,double>> &Q){
+void selectionSort(std::vector<std::pair<int,int>> &W, const Data *data){
     int max;
-    std::pair<int,double> tmp;
-    for (size_t i = 0; i < Q.size() - 1; i++){
+    double distMax = 0;
+    std::pair<int,int> tmp;
+    for (size_t i = 0; i < W.size() - 1; i++){
         max = i;
-        for (size_t j = i+1; j < Q.size(); j++){
-            if (Q.at(j).second > Q.at(max).second){
+        distMax = 0;
+        for (size_t j = i+1; j < W.size(); j++){
+            if (distMax < data->distances[ W.at(j).first * data->nnodes + W.at(j).second ]){
                 max = j;
+                distMax = data->distances[ W.at(j).first * data->nnodes + W.at(j).second ];
             }
         }
-        std::swap(Q.at(i), Q.at(max));
+        tmp = W.at(i);
+        W.at(i) = W.at(max);
+        W.at(max) = tmp;
+        // std::swap(Q.at(i), Q.at(max));
     }
 }
 
@@ -98,8 +104,85 @@ double getDistMax(const Data* data){
     return max;
 }
 
+
+void UpdateCenterSearch(int k, std::vector<int> &P, double TG[], int nnodes, int * actualInt, const Data *data){
+    std::tuple<int,double,double> T[nnodes]; // <id, capacited rest, distance max>
+    int nb = 0;
+    double demands = 0;
+    // on récupère les sommets de X_k
+    for (size_t i = 0; i < nnodes; i++){
+        if (actualInt[nnodes+k*nnodes+i]){
+            std::get<0>(T[nb]) = i;
+            // get<1>(T[nb]) = data->demand[i]; 
+            demands += data->demand[i];
+            nb++;
+        }
+    }
+    //on recupère le rayon maximal pour pour chaque sommet
+    double max = 0;
+    for (size_t i = 0; i < nb; i++){
+        max = 0;
+        for (size_t j = 0; j < nb; j++){
+            if ( max < data->distances[std::get<0>(T[i])*nnodes+std::get<0>(T[j])])
+                max = data->distances[std::get<0>(T[i])*nnodes+std::get<0>(T[j])]; 
+        }
+        std::get<2>(T[i]) = max;
+    }
+
+    // on recupère le sommet qui respecte les contraintes de capacité et ayant le plus petit rayon
+    int arg = k;
+    double dist = __DBL_MAX__;
+    for (size_t i = 0; i < nb; i++){
+        
+        if ( data->capacity[i] - demands > 0 && dist > std::get<2>(T[i])){
+            arg = std::get<0>(T[i]);
+            dist = std::get<2>(T[i]);
+        }
+    }
+
+    // if ( arg != k){
+        for (size_t i = 0; i < nb; i++){
+            actualInt[nnodes+k*nnodes+std::get<0>(T[i])] = 0;
+            actualInt[nnodes+arg*nnodes+std::get<0>(T[i])] = 1;
+        }
+    // }
+    
+    // on enlève l'ancien centre de notre liste des centres, et on place le nouveau
+    if ( arg != k){
+        for (std::vector<int>::iterator it = P.begin(); it != P.end(); it++){
+            if (*(it) == k){
+                std::swap(*it, P.back());
+                P.pop_back();
+                break;
+            }        
+        }
+        P.emplace_back(arg);
+    }
+    // on actualise les capacités
+    TG[k] = data->capacity[k];
+    TG[arg] = data->capacity[arg] - demands;
+}
+
+double getW(std::vector<int> K, int * actual_solution, const Data * data){
+
+    int nnodes = data->nnodes;
+    double max = 0;
+    for ( auto k : K){
+        for (size_t i = 0; i < nnodes; i++){
+            
+            if (actual_solution[nnodes + nnodes * k + i] && data->distances[k * nnodes + i] > max){
+                max = data->distances[k* nnodes + i];
+            }
+        }
+    }
+    return max;
+}
+
+
+
+
 // Recherche locale
-void local_search(int * actual_solution, const Data *data){
+double local_search(int * actual_solution, const Data *data){
     
     std::vector <std::pair<int, double>> Q; // (id, rho)
     std::vector <int> K; // (id)
@@ -111,13 +194,13 @@ void local_search(int * actual_solution, const Data *data){
 
     for ( auto k : K){
 
-        Q.clear();
+        if (!Q.empty()) Q.clear();
         if ((nbElement = getSubsetNow(actual_solution, Q, nnodes, k)) == 1) continue;
         updateRho(Q, data, k);
         del = 0;
-        while ( del/(nbElement-1) < ALPHA ){
+        while ( (double)del/ (double)(nbElement-1) < ALPHA ){
             arg = chooseID(Q);
-            auto pair = std::make_pair(Q.at(arg).first, k);
+             auto pair = std::make_pair(Q.at(arg).first, k);
             if ( std::find(W.begin(), W.end(), pair) == W.end() ){
                 del++;
                 W.emplace_back(pair);
@@ -125,7 +208,7 @@ void local_search(int * actual_solution, const Data *data){
         }
     }
 
-    selectionSort(Q);
+    selectionSort(W,data);
 
     // X <- X \ W
     for (auto w : W){
@@ -143,11 +226,14 @@ void local_search(int * actual_solution, const Data *data){
     for (auto w : W){
 
         k = getSubSetNext(w.first, K, data, distanceMax, TG);
-
+        actual_solution[nnodes + nnodes * k + w.first] = 1;
     }
 
+    for (auto k : K){
+        UpdateCenterSearch(k,K,TG,nnodes, actual_solution, data);
+    }
 
-
+    return getW(K,actual_solution,data);
 }
 
 

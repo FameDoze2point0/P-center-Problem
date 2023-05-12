@@ -9,7 +9,7 @@ DIR = ./
 
 # debug switches
 #SW = -Wall -ggdb3
-SW = -w -O3
+SW = -w -O3 -g
 
 # default target - - - - - - - - - - - - - - - - - - - - - -
 default : $(NAME)
