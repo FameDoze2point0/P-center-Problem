@@ -356,15 +356,11 @@ void Solver::solve(){
             double dist;
             cout << "===== Début de la recherche locale =====" << endl;
 
-            for (size_t i = 0; i < NB_SEARCH ; i++){
-                dist = local_search(actual_solution,data);
-                // cout << i < endl;
-            }
+            dist = local_search_bis(actual_solution,data);
             // dist = local_search(actual_solution,data);
             cout << "Maximum distance between a nodes and his center : " << dist << endl;
         }
         
     }
     
-    //freeMemory();
 }

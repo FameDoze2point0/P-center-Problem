@@ -5,7 +5,7 @@
 #include <vector>
 #include <algorithm>
 #include <tuple>
-#define ALPHA 0.5
+#define ALPHA 0.7
 
 #include "search.hpp"
 
@@ -15,7 +15,9 @@ void getP(int * actual, std::vector<int> &K, int nnodes);
 // récupération d'un sous-graphe à partir de la matrice 
 int getSubsetNow(int * actual, std::vector<std::pair<int,double>> &subset, int nnodes, int k);
 
-void updateRho(std::vector<std::pair<int,double>> &Q, const Data *data, int k);
+// void updateRho(std::vector<std::pair<int,double>> &Q, const Data *data, int k);
+int updateRho(int * actual, std::tuple<double, bool, int> tab[] , const Data *data, int k, int nnodes);
+
 
 int chooseID(std::vector<std::pair<int,double>> Q);
 
@@ -36,6 +38,7 @@ double getW(std::vector<int> K, int * actual_solution, const Data * data);
 // Recherche locale
 double local_search(int * actual_solution, const Data *data);
 
+double local_search_bis(int * actual_solution, const Data * data);
 
 
 

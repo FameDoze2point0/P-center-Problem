@@ -118,14 +118,15 @@ void updatePi(bool T[], double TP[], double TG[], int nnodes){
 }
 
 int chooseId(double TP[]){
-    int arg = 0;
-    double fin = TP[0], rng = (double)rand()/RAND_MAX;
 
-    while (fin < rng){
+    double debut = TP[0], rng = (double)rand() / (double) RAND_MAX;
+    int arg = 1;
+    while ( debut < rng){
+        debut += TP[arg];
         arg++;
-        fin += TP[arg];
     }
-    return arg;
+
+    return arg-1;
 }
 
 double getDistMax(int nnodes, const Data *pcenter_data){

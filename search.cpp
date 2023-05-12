@@ -21,29 +21,74 @@ int getSubsetNow(int * actual, std::vector<std::pair<int,double>> &subset, int n
     return nbElement;
 }
 
-void updateRho(std::vector<std::pair<int,double>> &Q, const Data *data, int k){
+// void updateRho(std::vector<std::pair<int,double>> &Q, const Data *data, int k){
     
-    int nnodes = data->nnodes;
+//     int nnodes = data->nnodes;
+//     // calcul de la somme des distances entre k et chaque sommet du sous-graphe
+//     double sum = 0.0;
+//     for (auto s : Q){
+//         sum += data->distances[s.first*nnodes + k];
+//     }
+
+//     for (size_t i = 0; i < Q.size(); i++){
+//         Q[i].second = (double)data->distances[Q[i].first*nnodes + k] / sum;
+//     }
+// }
+
+int updateRho(int * actual, std::tuple<int, double, bool, int> tab[] , const Data *data, int k, int nnodes){
+    
     // calcul de la somme des distances entre k et chaque sommet du sous-graphe
     double sum = 0.0;
-    for (auto s : Q){
-        sum += data->distances[s.first*nnodes + k];
+    int nb = 0; 
+    for (size_t i = 0; i < nnodes; i++){
+        if (std::get<3>(tab[i]) == k){
+            sum += data->distances[i*nnodes + k];
+            nb++;
+        }
     }
-
-    for (size_t i = 0; i < Q.size(); i++){
-        Q[i].second = (double)data->distances[Q[i].first*nnodes + k] / sum;
-    }
+    if ( nb != 1)
+        for (size_t i = 0; i < nnodes; i++){
+            if (std::get<3>(tab[i]) == k){
+                std::get<1>(tab[i]) = (double) data->distances[i*nnodes + k] / sum;
+            }
+        }
+    return nb;
 }
 
-int chooseID(std::vector<std::pair<int,double>> Q){
+
+// int chooseID(std::vector<std::pair<int,double>> Q){
     
-    int arg = 0;
-    double fin = Q.at(0).second, rng = (double)rand() / (double)RAND_MAX;
-    while (rng > fin){
-        arg++;
-        fin += Q.at(arg).second;
+//     int arg = 0;
+//     double fin = Q.at(0).second, rng = (double)rand() / (double)RAND_MAX;
+//     while (rng > fin){
+//         arg++;
+//         fin += Q.at(arg).second;
+//     }
+//     return arg;
+// }
+
+int idToDel(std::tuple<int, double,bool,int> tab[], int k, int nnodes){
+    
+    std::vector<int> R;
+    for (size_t i = 0; i < nnodes; i++){
+        if (std::get<3>(tab[i]) == k && i!=k){
+            R.emplace_back(i);   
+        }
     }
-    return arg;
+    
+    double debut, rng;
+    int arg;
+    while (1){
+
+        rng = (double)rand() / (double) RAND_MAX;
+        debut = std::get<1>(tab[R.at(0)]);
+        arg = 1;
+        while ( debut < rng && arg < R.size()){
+            debut += std::get<1>(tab[R.at(arg)]);
+            arg++;
+        }
+        if( std::get<2>(tab[R.at(arg-1)]) == false) return R.at(arg-1);;
+    }
 }
 
 // tri sélection
@@ -181,59 +226,134 @@ double getW(std::vector<int> K, int * actual_solution, const Data * data){
 
 
 
-// Recherche locale
-double local_search(int * actual_solution, const Data *data){
+// // Recherche locale
+// double local_search(int * actual_solution, const Data *data){
     
-    std::vector <std::pair<int, double>> Q; // (id, rho)
-    std::vector <int> K; // (id)
-    std::vector <std::pair<int, int>> W; // (k, c(l(k)) )
-    int nbElement = 0, del, arg, nnodes = data->nnodes;
+//     std::vector <std::pair<int, double>> Q; // (id, rho)
+//     std::vector <int> K; // (id)
+//     std::vector <std::pair<int, int>> W; // (k, c(l(k)) )
+//     int nbElement = 0, del, arg, nnodes = data->nnodes;
 
-    // récupération des centres
-    getP(actual_solution, K, nnodes);
+//     // récupération des centres
+//     getP(actual_solution, K, nnodes);
 
-    for ( auto k : K){
+//     for ( auto k : K){
 
-        if (!Q.empty()) Q.clear();
-        if ((nbElement = getSubsetNow(actual_solution, Q, nnodes, k)) == 1) continue;
-        updateRho(Q, data, k);
-        del = 0;
-        while ( (double)del/ (double)(nbElement-1) < ALPHA ){
-            arg = chooseID(Q);
-             auto pair = std::make_pair(Q.at(arg).first, k);
-            if ( std::find(W.begin(), W.end(), pair) == W.end() ){
-                del++;
-                W.emplace_back(pair);
+//         if (!Q.empty()) Q.clear();
+//         if ((nbElement = getSubsetNow(actual_solution, Q, nnodes, k)) == 1) continue;
+//         updateRho(Q, data, k);
+//         del = 0;
+//         while ( (double)del/ (double)(nbElement-1) < ALPHA ){
+//             arg = chooseID(Q);
+//             auto pair = std::make_pair(Q.at(arg).first, k);
+//             if ( std::find(W.begin(), W.end(), pair) == W.end() ){
+//                 del++;
+//                 W.emplace_back(pair);
+//             }
+//         }
+//     }
+//     selectionSort(W,data);
+//     // X <- X \ W
+//     for (auto w : W){
+//         actual_solution[nnodes + nnodes * w.second + w.first] = 0;
+//     }
+    
+//     double TG[nnodes] = {0.0};
+//     int k;
+//     double distanceMax = getDistMax(data) + 1;
+//     for (size_t i = 0; i < nnodes; i++){
+//         TG[i] = data->capacity[i] - data->demand[i];
+//     }
+    
+//     for (auto w : W){
+
+//         k = getSubSetNext(w.first, K, data, distanceMax, TG);
+//         actual_solution[nnodes + nnodes * k + w.first] = 1;
+//     }
+
+//     for (auto k : K){
+//         UpdateCenterSearch(k,K,TG,nnodes, actual_solution, data);
+//     }
+
+//     return getW(K,actual_solution,data);
+// }
+
+int sortW1(const void * first, const void * second){
+    bool firstBool =  std::get<2>(* (const std::tuple<int, double,bool,int> *) first);
+    bool secondBool = std::get<2>(* (const std::tuple<int, double,bool,int> *) second);
+    return secondBool - firstBool;
+}
+
+void bubleSort(std::tuple<int, double, bool, int> tab[], int w){
+
+    std::tuple <int, double, bool, int> tmp;
+    for (size_t i = w-1; i >= 0; i++){
+        for (size_t j = 0; j < i-1; j++){
+            if (std::get<1>(tab[j+1]) > std::get<1>(tab[j])){
+                tmp = tab[j+1];
+                tab[j+1] = tab[j];
+                tab[j] = tmp;
+            }
+        }
+    }   
+}
+
+double local_search_bis(int * actual_solution, const Data * data){
+
+    int nnodes = data->nnodes, nbEl, arg, W = 0;
+    std::vector<int> K;
+    std::tuple<int, double, bool, int> tab[nnodes]; // rho, isDelete, c(l(k))
+
+    getP(actual_solution,K,nnodes);    
+
+    // initialisation
+    for (size_t i = 0; i < nnodes; i++){
+        
+        std::get<0>(tab[i]) = i;
+        std::get<1>(tab[i]) = 0.0;
+        std::get<2>(tab[i]) = false;
+        std::get<3>(tab[i]) = -1;
+
+        for (size_t j = 0; j < nnodes; j++){
+            if (actual_solution[nnodes + nnodes * j + i]){
+                std::get<3>(tab[i]) = j;
+                break;
             }
         }
     }
 
-    selectionSort(W,data);
-
-    // X <- X \ W
-    for (auto w : W){
-        actual_solution[nnodes + nnodes * w.second + w.first] = 0;
-    }
-    
-    double TG[nnodes] = {0.0};
-    int k;
-    double distanceMax = getDistMax(data) + 1;
-    for (size_t i = 0; i < nnodes; i++){
-        TG[i] = data->capacity[i] - data->demand[i];
-    }
-    
-
-    for (auto w : W){
-
-        k = getSubSetNext(w.first, K, data, distanceMax, TG);
-        actual_solution[nnodes + nnodes * k + w.first] = 1;
-    }
-
     for (auto k : K){
-        UpdateCenterSearch(k,K,TG,nnodes, actual_solution, data);
+        
+        std::cout << "====== " << k << " ======" << std::endl;
+        nbEl = updateRho(actual_solution, tab, data, k, nnodes);
+        if (nbEl == 1) continue;
+
+        int del = 0;
+        while ( (double)del/ (double)(nbEl-1) < ALPHA){
+            arg = idToDel(tab, k, nnodes);
+            std::get<2>(tab[arg]) = true;
+            std::cout << "Je supprime " << arg << std::endl;
+            del++;
+            W++;
+        }
+    }
+    
+    qsort(tab, nnodes, sizeof(std::tuple<int, double,bool,int>), sortW1);
+
+    for (size_t i = 0; i < nnodes; i++){
+        std::cout << std::get<0>(tab[i]) << " " << std::get<2>(tab[i]) << " " << std::get<1>(tab[i]) << std::endl;
     }
 
-    return getW(K,actual_solution,data);
+    std::cout << "============" << W << std::endl;   
+
+    bubleSort(tab,W);
+    
+    for (size_t i = 0; i < nnodes; i++){
+        std::cout << std::get<0>(tab[i]) << " " << std::get<2>(tab[i]) << " " << std::get<1>(tab[i]) << std::endl;
+    }
+    
+    
+    return 0;
 }
 
 
@@ -242,8 +362,3 @@ double local_search(int * actual_solution, const Data *data){
 
 
 
-
-
-
-
-// VND
