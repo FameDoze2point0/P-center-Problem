@@ -8,3 +8,9 @@ structure.o
 *.o
 .vscode/c_cpp_properties.json
 .vscode/settings.json
+.vscode/._c_cpp_properties.json
+.DS_Store
+._.vscode
+resultat.dat
+pcenter
+.vscode/._settings.json

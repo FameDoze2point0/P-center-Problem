@@ -270,6 +270,25 @@ void Solver::freeMemory(){
     free(actual_solution);
 }
 
+// void fprintSolution(int * actual, const Data* data){
+//     ofstream f("resultat.dat");
+
+    
+//     for (size_t i = 0; i < data->nnodes; i++){
+//         f << i + 1 << "\t| " << actual[i] << std::endl;
+//     }
+
+//     for (size_t i = 0; i < data->nnodes; i++){
+        
+//         f << i+1 << "\t| ";
+//         for (size_t j = 0; j < data->nnodes; j++){
+//             f << actual[data->nnodes + i*data->nnodes+j] << " ";
+//         }
+//         f << endl;
+//     }
+//     f.close();
+// }
+
 void Solver::solve(){
 
     double timeSpend = 0, t_initial = cplex.getCplexTime();
@@ -356,8 +375,12 @@ void Solver::solve(){
             double dist;
             cout << "===== Début de la recherche locale =====" << endl;
 
-            dist = local_search_bis(actual_solution,data);
-            // dist = local_search(actual_solution,data);
+            for (size_t i = 0; i < 1000; i++){
+                dist = local_search(actual_solution,data);
+            }
+            if ( !isVerified(w_))
+                std::cout << "========================== LA SOLUTION TROUVÉE N'EST PLUS VÉRIFIÉE !!! ==========================";   
+            // fprintSolution(actual_solution,data);
             cout << "Maximum distance between a nodes and his center : " << dist << endl;
         }
         
